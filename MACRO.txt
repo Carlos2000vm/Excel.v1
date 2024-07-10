@@ -1,0 +1,69 @@
+Sub MaxMinPorMes()
+    Dim ws As Worksheet
+    Dim lastRow As Long
+    Dim startRow As Long
+    Dim i As Long
+    Dim currentMonth As Variant
+    Dim currentYear As Variant
+    Dim maxCloro As Double
+    Dim minCloro As Double
+    
+    ' Establecer la hoja de trabajo
+    Set ws = ThisWorkbook.Sheets("Hoja1") ' Cambia "Hoja1" al nombre de tu hoja si es diferente
+    
+    ' Limpiar las columnas J y K
+    Call CleanMaxMinColumns(ws)
+    
+    ' Encontrar la última fila con datos
+    lastRow = ws.Cells(ws.Rows.Count, "C").End(xlUp).Row
+    
+    startRow = 5 ' Asume que tus datos empiezan en la fila 2 (con encabezados en la fila 1)
+    
+    ' Inicializa con el primer mes y año válidos
+    For i = startRow To lastRow
+        If IsNumeric(ws.Cells(i, 4).Value) And IsNumeric(ws.Cells(i, 5).Value) Then
+            currentMonth = ws.Cells(i, 4).Value
+            currentYear = ws.Cells(i, 5).Value
+            maxCloro = ws.Cells(i, 9).Value
+            minCloro = ws.Cells(i, 9).Value
+            Exit For
+        End If
+    Next i
+    
+    If IsEmpty(currentMonth) Or IsEmpty(currentYear) Then
+        MsgBox "No se encontraron datos válidos para mes y año.", vbCritical
+        Exit Sub
+    End If
+    
+    For i = i + 1 To lastRow
+        If IsNumeric(ws.Cells(i, 4).Value) And IsNumeric(ws.Cells(i, 5).Value) Then
+            If ws.Cells(i, 4).Value = currentMonth And ws.Cells(i, 5).Value = currentYear Then
+                If ws.Cells(i, 9).Value > maxCloro Then maxCloro = ws.Cells(i, 9).Value
+                If ws.Cells(i, 9).Value < minCloro Then minCloro = ws.Cells(i, 9).Value
+            Else
+                ' Insertar valores de max y min en la columna J y K en la última fila del mes anterior
+                ws.Cells(i - 1, 10).Value = maxCloro ' MAX en columna J
+                ws.Cells(i - 1, 11).Value = minCloro ' MIN en columna K
+                
+                ' Reiniciar valores para el nuevo mes
+                currentMonth = ws.Cells(i, 4).Value
+                currentYear = ws.Cells(i, 5).Value
+                maxCloro = ws.Cells(i, 9).Value
+                minCloro = ws.Cells(i, 9).Value
+            End If
+        End If
+    Next i
+    
+    ' Insertar valores de max y min para el último mes
+    ws.Cells(lastRow, 10).Value = maxCloro ' MAX en columna J
+    ws.Cells(lastRow, 11).Value = minCloro ' MIN en columna K
+End Sub
+
+Sub CleanMaxMinColumns(ws As Worksheet)
+    Dim lastRow As Long
+    
+    lastRow = ws.Cells(ws.Rows.Count, "C").End(xlUp).Row
+    
+    ' Limpiar las columnas J y K desde la fila 2 hasta la última fila con datos
+    ws.Range("J5:K" & lastRow).ClearContents
+End Sub
